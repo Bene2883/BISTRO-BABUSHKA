@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bistro Babushka</title>
+    <meta name="robots" content="noindex" />
+  </head>
+
+  <body>
+    <style>
+      #splash {
+        display: grid;
+      }
+
+      #splash img {
+        width: 100%;
+        /* aspect-ratio: 16/9; */
+        object-fit: cover;
+        grid-row: 1;
+        grid-column: 1;
+      }
+
+      #splash h1 {
+        font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+        object-fit: cover;
+        width: 100%;
+        grid-row: 1;
+        grid-column: 1;
+        color: white;
+        font-size: 3rem;
+        min-width: 600;
+        text-align: center;
+      }
+
+      article {
+        background-color: #df6734;
+      }
+
+      section {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+      }
+
+      article {
+        border: 2px solid #df6734;
+        border-radius: 10px;
+      }
+
+      .grid-menu img {
+        width: 100%;
+        border-radius: 9px;
+        object-fit: cover;
+        aspect-ratio: 8/5;
+      }
+
+      .info {
+        padding: 0 1rem;
+      }
+
+      .valgt {
+        background-color: rgb(151, 172, 227);
+      }
+
+      button {
+        margin: 10px;
+      }
+
+      #modal {
+        display: none;
+        height: 100vh;
+        width: 100vw;
+        position: fixed;
+        top: 0;
+        background-color: rgba(0, 0, 0, 0.523);
+      }
+
+      #modal article.grid-menu {
+        max-width: 500px;
+        margin: 2rem auto;
+        background-color: white;
+      }
+    </style>
+    <header>
+      <div id="splash">
+        <img src="img/babu.jpg" alt="Babushka" />
+        <h1>Bistro Babushka</h1>
+      </div>
+    </header>
+    <nav>
+      <button data-kategori="alle" class="valgt">Alle</button>
+      <button data-kategori="forretter">Forretter</button>
+      <button data-kategori="hovedretter">Hovedretter</button>
+      <button data-kategori="sideorders">Sideorders</button>
+      <button data-kategori="desserter">Desserter</button>
+      <button data-kategori="drikkevarer">Drikkevarer</button>
+      <section class="container"></section>
+    </nav>
+
+    <aside id="modal">
+      <article class="grid-menu">
+        <img src="" alt="" />
+        <div class="info">
+          <h2 class="titel"></h2>
+          <p class="mad"></p>
+          <p class="pris"></p>
+        </div>
+      </article>
+    </aside>
+    <section></section>
+
+    <template>
+      <article class="grid-menu">
+        <img src="" alt="" />
+        <div class="info">
+          <h2 class="titel"></h2>
+          <p class="mad"></p>
+          <p class="pris"></p>
+        </div>
+      </article>
+    </template>
+
+    <script>
+      let modal = document.querySelector("#modal");
+
+      const container = document.querySelectorAll("section");
+      const url = "https://babushka-dd8a.restdb.io/rest/menu";
+
+      const options = {
+        headers: {
+          "x-apikey": "600ec2fb1346a1524ff12de4",
+        },
+      };
+
+      document.addEventListener("DOMContentLoaded", start);
+      let menu;
+      let filter = "alle";
+
+      function start() {
+        const filterKnapper = document.querySelectorAll("button");
+        filterKnapper.forEach((knap) =>
+          knap.addEventListener("click", filtrerPersoner)
+        );
+        hentData();
+      }
+
+      function filtrerPersoner() {
+        filter = this.dataset.kategori;
+        document.querySelector(".valgt").classList.remove("valgt");
+        this.classList.add("valgt");
+        visMenu();
+      }
+
+      async function hentData() {
+        const respons = await fetch(url, options);
+        menu = await respons.json();
+        console.log("Retter", menu);
+        visMenu();
+      }
+
+      function visMenu() {
+        let container = document.querySelector(".container");
+        let temp = document.querySelector("template");
+        container.textContent = "";
+
+        menu.forEach((ret) => {
+          if (filter == "alle" || filter == ret.kategori) {
+            const klon = temp.cloneNode(true).content;
+            klon.querySelector("img").src = `img/${ret.billednavn}-md.jpg`;
+            klon.querySelector(".titel").textContent = ret.navn;
+            klon.querySelector(".mad").textContent = ret.kortbeskrivelse;
+            klon.querySelector(".pris").textContent = `Pris: ${ret.pris},-`;
+            klon
+              .querySelector("img")
+              .addEventListener("click", () => visDetaljer(ret));
+            container.appendChild(klon);
+          }
+        });
+      }
+
+      function visDetaljer(ret) {
+        console.log("Popupvindue");
+        modal.style.display = "block";
+        modal.querySelector("h2").textContent = ret.langbeskrivelse;
+        modal.querySelector("img").src = `img/${ret.billednavn}-md.jpg`;
+      }
+
+      modal.addEventListener("click", () => (modal.style.display = "none"));
+
+      hentData();
+    </script>
+  </body>
+</html>
